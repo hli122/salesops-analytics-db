@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Secrets
+.env
+
+# Real business data
+data/JanDataByWeek.xlsx
+
+# Generated reports
+weekly_report_*.xlsx
+
+# OS / editor
+.DS_Store
+.vscode/
