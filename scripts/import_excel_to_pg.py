@@ -1,8 +1,15 @@
 import os
+import sys
 from pathlib import Path
 
 import pandas as pd
 from sqlalchemy import create_engine, text
+
+# Ensure project root is on sys.path so "import app" works
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+from app.db import get_engine
 
 
 # ====== config ======
@@ -18,15 +25,7 @@ if not EXCEL_PATH.exists():
 
 SOURCE_FILE_NAME = EXCEL_PATH.name
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError(
-        "Missing env DATABASE_URL.\n"
-        "PowerShell example:\n"
-        '$env:DATABASE_URL="postgresql+psycopg2://postgres:YOUR_PASSWORD@localhost:5432/salesops"'
-    )
-
-engine = create_engine(DATABASE_URL, future=True)
+engine = get_engine()
 
 
 # ====== helpers ======
