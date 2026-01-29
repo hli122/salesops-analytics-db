@@ -6,7 +6,7 @@ __pycache__/
 .env
 
 # Real business data
-data/JanDataByWeek.xlsx
+data/*.xlsx
 
 # Generated reports
 weekly_report_*.xlsx
