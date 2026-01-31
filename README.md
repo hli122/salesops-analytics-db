@@ -1,175 +1,248 @@
-SalesOps Analytics Database & ETL Pipeline
+SalesOps Analytics DB
 
-A lightweight Sales Operations analytics system built with PostgreSQL + Python, featuring a full ETL pipeline to ingest Excel-based sales data, a dimensional data model, and an automated weekly reporting workflow.
+An internal Sales Operations analytics system with PostgreSQL, ETL pipelines, validation checks, and reporting APIs.
 
-This project demonstrates how to transform raw operational spreadsheets into a structured analytics database and generate management-ready reports.
+1️⃣ Project Overview
 
-I. Features
+This project implements a Sales Operations analytics system designed for internal reporting and operational support.
 
-ETL Pipeline (Extract · Transform · Load)
+It covers the full lifecycle of a data system:
 
-Import sales data from Excel into PostgreSQL
+Data ingestion (ETL from Excel)
 
-Data cleaning and normalization
+Normalized relational database design
 
-Automatic deduplication and integrity constraints
+Data validation and quality checks
 
-Dimensional Data Model
+API-based reporting endpoints
 
-Fact table: fact_sales_line
+Database reset and maintenance scripts
 
-Dimension tables: dim_product, dim_seller, dim_shipping_company
+The system is intentionally designed to resemble enterprise / government internal tools, focusing on data correctness, maintainability, and auditability rather than UI.
 
-Optimized for reporting and aggregation
+2️⃣ Architecture
+Excel (Sales Data)
+        |
+        v
+ETL Script (Python / Pandas)
+        |
+        v
+PostgreSQL (salesops schema)
+        |
+        v
+FastAPI Reporting Layer
+        |
+        v
+JSON APIs (Weekly Report / Rankings / Data Quality)
 
-Automated Weekly Reporting
+Key Design Principles
 
-Revenue, units sold, and transaction volume
+Single source of truth: PostgreSQL as the central data store
 
-Seller performance ranking
+Separation of concerns:
 
-Top products by revenue
+ETL scripts
 
-Shipping company breakdown
+Database schema & maintenance
 
-Production-style Engineering Practices
+API / application layer
 
-Environment variable based configuration
+Configurable & environment-driven:
 
-Idempotent imports
+No hard-coded credentials
 
-Indexes and constraints
+External data sources via environment variables
 
-Git-ignored secrets and generated files
+Audit-friendly:
 
-II. Architecture Overview
-Excel Files
-    ↓
-Python ETL (pandas + SQLAlchemy)
-    ↓
-PostgreSQL (SalesOps schema)
-    ↓
-Analytical SQL Queries
-    ↓
-Weekly Management Report
+Source file tracking
 
-III. Project Structure
-salesops-analytics-db/
+Source row numbers preserved
+
+3️⃣ Project Structure
+salesops-db/
+│
+├── app/                    # Application layer (FastAPI)
+│   ├── __init__.py
+│   ├── main.py
+│   ├── db.py               # Centralized DB connection logic
+│   └── routers/
+│       ├── __init__.py
+│       └── reports.py      # Reporting & data-quality APIs
+│
 ├── scripts/
-│   ├── import_excel_to_pg.py      # ETL pipeline: Excel → PostgreSQL
-│   └── generate_weekly_report.py  # Weekly analytics & reporting
+│   └── import_excel_to_pg.py   # ETL: Excel → PostgreSQL
 │
 ├── sql/
-│   ├── 01_create_tables.sql       # Schema & tables
-│   └── 02_clean_tables.sql        # Reset data (truncate)
+│   ├── 01_create_tables.sql    # Schema & table definitions
+│   └── 02_clean_tables.sql     # Database reset (truncate)
 │
-├── data/
-│   └── (ignored) real business Excel files
+├── data/                   # Local data files (gitignored)
 │
-├── .gitignore
-└── README.md
+├── README.md
+└── .gitignore
 
-IV. Data Model
+4️⃣ Database Design
+Schema: salesops
+
+Dimension tables
+
+dim_product
+
+dim_seller
+
+dim_shipping_company
 
 Fact table
 
-salesops.fact_sales_line
+fact_sales_line
 
-sale_time, product_id, seller_id, shipping_company_id
+Each sales line records:
 
-unit_price, units, line_total
+Sale timestamp
 
-source tracking & ingestion timestamp
+Product, seller, shipping company (FKs)
 
-Dimensions
+Unit price, units, total price
 
-salesops.dim_product
+source_file + source_row_number for audit & deduplication
 
-salesops.dim_seller
+5️⃣ ETL: Importing Sales Data
+Data Source
 
-salesops.dim_shipping_company
+Excel file (default):
+data/2026SalesData.xlsx
 
-The schema follows a star-schema style design optimized for analytics workloads.
+Can be overridden via environment variable:
 
-V. Setup
-1. Install dependencies
-pip install pandas openpyxl sqlalchemy psycopg2-binary
+$env:SALES_DATA_FILE="data\Feb2026.xlsx"
 
-2. Create database & tables
+Run ETL
 
-Create a PostgreSQL database (e.g. salesops), then run:
+From project root:
 
--- in pgAdmin
-sql/01_create_tables.sql
+$env:DATABASE_URL="postgresql+psycopg2://user:password@localhost:5432/salesops"
+python scripts\import_excel_to_pg.py
 
-3. Configure environment variables
+ETL Features
 
-Windows PowerShell:
+Column validation
 
-$env:DATABASE_URL="postgresql+psycopg2://username:password@localhost:5432/salesops"
+Datetime parsing and validation
 
-4. Run ETL import
-python scripts/import_excel_to_pg.py
+String normalization
 
-5. Generate weekly report
-$env:START_DATE="2026-01-12"
-$env:END_DATE="2026-01-18"
-python scripts/generate_weekly_report.py
+Price sanity checks (unit_price × units vs total)
 
-VI. Example Analytics
+Idempotent inserts via (source_file, source_row_number)
 
-Weekly revenue, total units, order volume
+Automatic dimension key creation
 
-Seller ranking by revenue
+6️⃣ API Layer (FastAPI)
 
-Top products
+Start API server:
 
-Shipping company contribution
-
-All analytics are computed directly from the PostgreSQL warehouse.
-
-VII. Security & Data Handling
-
-Database credentials are loaded from environment variables
-
-Real business Excel files and generated reports are excluded via .gitignore
-
-Repository only contains reproducible system code
-
-VIII. Tech Stack
-
-PostgreSQL – analytics database
-
-Python – ETL & reporting
-
-pandas – data processing
-
-SQLAlchemy – database access
-
-openpyxl – Excel ingestion
-
-IX. Project Goals
-
-Build a realistic sales analytics backend system
-
-Demonstrate ETL engineering practices
-
-Provide a foundation for dashboards, APIs, or scheduled reporting jobs
-
-X. Possible Extensions
-
-Scheduled jobs (cron / Task Scheduler)
-
-Web dashboard (FastAPI + React)
-
-Automated email reports
-
-Data quality checks & anomaly detection
-
-Visualization layer (Metabase / Superset / Power BI)
+uvicorn app.main:app --reload
 
 
-Author
+Swagger UI:
 
-Haoran Li
-Sales Operations · Data Engineering · Analytics Systems
+http://127.0.0.1:8000/docs
+
+Available Endpoints
+Endpoint	Description
+/reports/weekly-summary	Revenue, units, line count
+/reports/seller-ranking	Seller performance ranking
+/reports/top-products	Top N products by revenue
+/reports/shipping-breakdown	Shipping company revenue
+/reports/data-quality	Data validation & anomaly detection
+7️⃣ Data Quality & Validation
+
+The data-quality API provides operational diagnostics:
+
+Price mismatch detection (with tolerance)
+
+Non-positive units
+
+Negative monetary values
+
+Missing shipping company references
+
+Sample rows for troubleshooting
+
+Example:
+
+GET /reports/data-quality?start_date=2026-01-12&end_date=2026-01-18
+
+
+Returns:
+
+Overall status (ok / warn)
+
+Aggregated issue counts
+
+Example problematic rows
+
+This mirrors real-world operational monitoring in enterprise systems.
+
+8️⃣ Database Maintenance
+Reset Database (Development / Testing)
+-- sql/02_clean_tables.sql
+TRUNCATE TABLE
+  salesops.fact_sales_line,
+  salesops.dim_product,
+  salesops.dim_seller,
+  salesops.dim_shipping_company
+RESTART IDENTITY CASCADE;
+
+
+This allows clean rebuilds when data sources or logic change.
+
+9️⃣ Configuration
+Variable	Purpose
+DATABASE_URL	PostgreSQL connection string
+SALES_DATA_FILE	Optional override for Excel data file
+
+No credentials or data files are committed to GitHub.
+
+🔟 Intended Use Case
+
+This project is designed as:
+
+An internal Sales Operations analytics backend
+
+A reference implementation of:
+
+ETL pipelines
+
+Data validation
+
+Reporting APIs
+
+Maintainable system structure
+
+It intentionally avoids UI complexity to focus on data correctness, reliability, and system design.
+
+🚀 Future Improvements
+
+Import logging table (import_log)
+
+Scheduled ETL runs
+
+Authentication / role-based access
+
+Materialized views for performance
+
+CSV / Excel export endpoints
+
+📌 Summary
+
+This repository demonstrates the design and implementation of a production-style internal analytics system, emphasizing:
+
+Clean architecture
+
+Operational reliability
+
+Data quality awareness
+
+Realistic enterprise workflows
