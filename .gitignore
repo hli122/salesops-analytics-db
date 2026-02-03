@@ -4,6 +4,8 @@ __pycache__/
 
 # Secrets
 .env
+run_api.ps1
+run_etl.ps1
 
 # Real business data
 data/*.xlsx
