@@ -1,0 +1,4 @@
+# Copy to run_api.ps1 and fill DATABASE_URL locally (do NOT commit run_api.ps1)
+
+$env:DATABASE_URL="postgresql+psycopg2://postgres:YOUR_PASSWORD@localhost:5432/salesops"
+python -m uvicorn app.main:app --reload
