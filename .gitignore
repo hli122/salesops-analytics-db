@@ -4,6 +4,7 @@ __pycache__/
 
 # Secrets
 .env
+*.env
 run_api.ps1
 run_etl.ps1
 
