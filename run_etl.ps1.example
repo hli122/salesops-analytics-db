@@ -1,2 +1,0 @@
-$env:DATABASE_URL="postgresql+psycopg2://postgres:YOUR_PASSWORD@localhost:5432/salesops"
-python scripts\import_excel_to_pg.py
