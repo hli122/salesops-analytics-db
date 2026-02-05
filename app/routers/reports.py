@@ -145,3 +145,35 @@ def data_quality(
             "sample_limit": limit,
         },
     }
+
+@router.get("/data-quality-samples")
+def data_quality_samples(
+    start_date: str = Query(..., description="YYYY-MM-DD"),
+    end_date: str = Query(..., description="YYYY-MM-DD"),
+    tol: float = Query(0.05, ge=0, description="Tolerance for total mismatch"),
+    limit: int = Query(20, ge=1, le=200),
+):
+    engine = get_engine()
+    params = {"start_date": start_date, "end_date": end_date, "tol": tol, "limit": limit}
+
+    with engine.connect() as conn:
+        rows = conn.execute(text(SQL_DATA_QUALITY_SAMPLES), params).mappings().all()
+
+    # 把 datetime/date 转成字符串，避免 JSON 序列化问题
+    samples = []
+    for r in rows:
+        d = dict(r)
+        if d.get("sale_time") is not None:
+            d["sale_time"] = d["sale_time"].isoformat()
+        if d.get("sale_date") is not None:
+            d["sale_date"] = d["sale_date"].isoformat()
+        samples.append(d)
+
+    return {
+        "start_date": start_date,
+        "end_date": end_date,
+        "tol": tol,
+        "limit": limit,
+        "count": len(samples),
+        "samples": samples,
+    }
