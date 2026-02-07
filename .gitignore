@@ -12,7 +12,7 @@ run_etl.ps1
 data/*.xlsx
 
 # Generated reports
-weekly_report_*.xlsx
+outputs/weekly_report_*.xlsx
 
 # OS / editor
 .DS_Store
